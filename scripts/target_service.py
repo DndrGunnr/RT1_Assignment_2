@@ -1,12 +1,13 @@
 #! /usr/bin/env python
 
 import rospy
-from assign_2.srv import *
+from assign_2.srv import target
 
 def target_service(req):
-	x=rospy.get_param("des_pos_x")
-	y=rospy.get_param("des_pos_y")
-	return targetResponse(x,y)
+	coords=[0,0]
+	coords[0]=rospy.get_param("des_pos_x")
+	coords[1]=rospy.get_param("des_pos_y")
+	return targetResponse(coords)
 
 def main():
 	rospy.init_node('target_service')

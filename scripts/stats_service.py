@@ -1,0 +1,64 @@
+#! /usr/bin/env python
+
+import rospy
+from assign_2.msg import posVel
+from assign_2.srv import *
+from math import dist
+
+#variable counting number of samples from robot velocity
+counter=0;
+#variable containing target coordinates
+trgt=[0.0,0.0]
+#list of recorded velocities
+vels=[0]*rospy.get_param("avg_window")
+#variable to store current position of robot, overwritten each time a new sample is available
+position=[0,0]
+#variable for average speed, overwritten once every averaging-window-lenght samples
+avg_speed=0.0
+target
+
+def stats_clbk(pos_vel):
+	global counter,vels,position,avg_speed
+	position[0]=pos_vel.pos_x
+	position[1]=pos_vel.pos_y
+	vels[counter]=pos_vel.vel_x
+	#for each callback a sample from the robot velocity is taken
+	counter=counter+1
+	#when all the samples are available, the average speed is computed
+	if counter>(rospy.get_param("avg_window")-1):
+		avg_speed=sum(vels)/rospy.get_param("avg_window")
+		counter=0
+	
+	
+
+
+def stats_service(req):
+	global trgt,avg_speed
+	#service to retrieve target
+	
+	
+	trgt=target()
+	#trgt[0]=rospy.get_param("des_pos_x")
+	#trgt[1]=rospy.get_param("des_pos_y")
+	distance=dist(trgt,position)
+	return distance,avg_speed
+	
+	
+
+def main():
+	global target	
+	rospy.wait_for_service('target_service')
+	target=rospy.ServiceProxy('target_service', target)
+
+	rospy.init_node('stats_service')
+	
+	sub =rospy.Subscriber('/posVel', posVel, stats_clbk)
+
+	
+	stats_srv=rospy.Service('stats_service', stats, stats_service)
+	rospy.spin()
+	
+
+	
+if __name__=='__main__':
+	main()

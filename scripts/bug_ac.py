@@ -2,15 +2,11 @@
 
 import rospy
 from geometry_msgs.msg import Point, Pose, Twist
-from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 import assign_2.msg
 from assign_2.msg import posVel
-import math
 import actionlib
 import actionlib.msg
-from tf import transformations
-from std_srvs.srv import *
 import time
 
 #publisher for position and velocity
@@ -23,7 +19,7 @@ def clbk_funct(odometry):
 	msg.pos_x=odometry.pose.pose.position.x
 	msg.pos_y=odometry.pose.pose.position.y
 	msg.vel_x=odometry.twist.twist.linear.x
-	msg.vel_y=odometry.twist.twist.linear.y
+	msg.vel_z=odometry.twist.twist.angular.z
 	#publishing the message
 	pvel.publish(msg)
 
@@ -52,6 +48,7 @@ def bug0_client():
 
 		client.wait_for_result()
 		print(client.get_result())
+
 
 def main():
 	rospy.init_node('bug0_client')
