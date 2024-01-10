@@ -17,6 +17,9 @@ position=[0,0]
 avg_speed=0.0
 target
 
+#Function that it's called whenever a message is published on the /posVel topic.
+#The vel array is used as the averaging window for the speed, the counter is used to iteratively cycle through
+#the samples as the oldest ones are overwritten
 def stats_clbk(pos_vel):
 	global counter,vels,position,avg_speed
 	position[0]=pos_vel.pos_x
@@ -31,13 +34,14 @@ def stats_clbk(pos_vel):
 	
 	
 
-
+#service that returns target coordinates and average linear velocity.
+#Makes use of the target service for target coordinates retrieval
+#this was done to make use of the target service
 def stats_service(req):
 	global trgt,avg_speed
 	#service to retrieve target
-	
-	
-	trgt=target()
+	returned=(target())
+	trgt=[returned.x,returned.y]
 	#trgt[0]=rospy.get_param("des_pos_x")
 	#trgt[1]=rospy.get_param("des_pos_y")
 	distance=dist(trgt,position)
@@ -47,14 +51,17 @@ def stats_service(req):
 
 def main():
 	global target	
+	#target service proxy init
 	rospy.wait_for_service('target_service')
 	target=rospy.ServiceProxy('target_service', target)
-
+	
+	#node init
 	rospy.init_node('stats_service')
 	
+	#subscription to /posVel topic for position and velocity info
 	sub =rospy.Subscriber('/posVel', posVel, stats_clbk)
 
-	
+	#stats service init
 	stats_srv=rospy.Service('stats_service', stats, stats_service)
 	rospy.spin()
 	

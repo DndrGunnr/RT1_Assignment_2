@@ -7,7 +7,7 @@
     <node pkg="assign_2" type="wall_follow_service.py" name="wall_follower" />
     <node pkg="assign_2" type="go_to_point_service.py" name="go_to_point"  />
     <node pkg="assign_2" type="target_service.py" name="target" />
-    <node pkg="assign_2" type="stats_service.py" name="stats" output="screen" />
+    <node pkg="assign_2" type="stats_service.py" name="stats"  />
     <node pkg="assign_2" type="bug_as.py" name="bug_action_server"  />
 	<node pkg="assign_2" type="bug_ac.py" name="bug_action_client" output="screen" />
 </launch>
