@@ -39,13 +39,15 @@ def stats_clbk(pos_vel):
 #this was done to make use of the target service
 def stats_service(req):
 	global trgt,avg_speed
+	response=statsResponse()
 	#service to retrieve target
 	returned=(target())
 	trgt=[returned.x,returned.y]
 	#trgt[0]=rospy.get_param("des_pos_x")
 	#trgt[1]=rospy.get_param("des_pos_y")
-	distance=dist(trgt,position)
-	return distance,avg_speed
+	response.dist=dist(trgt,position)
+	response.avg_vel=avg_speed
+	return response
 	
 	
 
