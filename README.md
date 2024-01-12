@@ -11,14 +11,16 @@ Below a flowchart for the logic of the `bug_ac` node:
 
 * `target_service`: service providing the cartesian coordinates of the target, by retrieving them from the parameters server, these are transmitted through a custom service called `target.srv`
 * `stats_service`:service provides the Euclidean distance between the target and the robot's current position, this is done in two separate blocks of code:
-  * `stats_clbk`: is the callback linked to a subscriber to the `/posVel` topic. Each time a message is published there, this function retrieves and stores the current position and linear velocity. The latter is used to compute the average through a moving window (that is customizable through the `assignment1.launch` file, changing the value contained in the variable `avg_window`).
+  * `stats_clbk`: is the callback linked to a subscriber to the `/posVel` topic. Each time a message is published there, this function retrieves and stores the current position and linear velocity. The latter is used to compute the average through a moving window (customizable through the `assignment1.launch` file, changing the value contained in the variable `avg_window`).
   * `stats_service`: provides on demand the average linear velocity computed in the callback function and the current distance between the robot and the target, which are retrieved using the `target_service`.  
 # How to run
 To run this package using noetic ROS, you must place the contents of this directory in a folder named `assign_2` inside the `src` folder of the ROS workspace.  
 This is because the package name is indeed `assign_2`.  
 Then in the root folder of the ROS workspace, you must run from the shell the command `$catkin_make` to build the package.  
-Finally, to launch the program you can type in `$roslaunch assign_2 assignment1.launch`.
+Finally, you can type in `$roslaunch assign_2 assignment1.launch` to launch the program.
 # Possible improvements
+Possible improvements apart from boosts in speed, may be the logic of the robot itself, in this implementation the robot always follows the walls keeping it on the right. This is a simple solution but far from the optimal one. By changing how the information about the laser range finder is elaborated, the robot could become capable of choosing the most appropriate way to get around obstacles.  
+The feedback information produced by the action client could be further developed in order to give the user a better idea of what the robot is doing without necessarily looking at the simulation.
 
 
 
