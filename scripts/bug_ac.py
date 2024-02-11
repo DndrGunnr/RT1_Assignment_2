@@ -3,14 +3,18 @@
 import rospy
 from geometry_msgs.msg import Point, Pose, Twist
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Float32
+from assign_2.srv import *
+from sensor_msgs.msg import LaserScan
 import assign_2.msg
-from assign_2.msg import posVel
+from assign_2.msg import posVel, obstDist
 import actionlib
 import actionlib.msg
 import time
 
 #publisher for position and velocity
 pvel=rospy.Publisher('/posVel', posVel, queue_size=1)
+obstdist=rospy.Publisher('/obstDist', obstDist, queue_size=1)
 
 #Function called whenever the action server some feedback updates.
 #Each state message is filtered while the achievement of goal is printed
@@ -32,6 +36,22 @@ def clbk_funct(odometry):
 	msg.vel_z=odometry.twist.twist.angular.z
 	#publishing the message
 	pvel.publish(msg)
+	
+def clbk_laser(scan):
+    global regions_
+    regions_ = {
+        'right':  min(min(scan.ranges[0:143]), 10),
+        'fright': min(min(scan.ranges[144:287]), 10),
+        'front':  min(min(scan.ranges[288:431]), 10),
+        'fleft':  min(min(scan.ranges[432:575]), 10),
+        'left':   min(min(scan.ranges[576:719]), 10),
+    }
+    min_key= min(regions_, key=regions_.get)
+    min_value=regions_.get(min_key)
+    msg=obstDist()
+    msg.direction=min_key
+    msg.distance=min_value
+    obstdist.publish(msg)
 	
 
 
@@ -67,20 +87,33 @@ def bug0_client():
 		goal.target_pose.pose.position.y=des_y
 		#send the goal
 		client.send_goal(goal, feedback_cb=feedback_clbk)
-		enter=input("type anything to continue or 'c' to cancel the goal \n")
-		if enter=='c':
-			client.cancel_goal()
-			print("goal cancelled")
+		while True:
+			enter=input("type 'c' to cancel the goal, 't' to get the target coordinates, or 'p' to continue \n")
+			if enter=='c':
+				client.cancel_goal()
+				print("goal cancelled")
+			elif enter=='t':
+				print("target coords:\n ",target())
+			elif enter=='p':
+				break
 
 		client.wait_for_result()
 
 
 
 def main():
+	global target
 	rospy.init_node('bug0_client')
+	
+	#target service proxy init
+	rospy.wait_for_service('target_service')
+	target=rospy.ServiceProxy('target_service', target)
 
 	#subscriver to /odom topic
 	odom = rospy.Subscriber('/odom', Odometry, clbk_funct)
+	
+	#subscriber to /scan topic
+	sub_laser = rospy.Subscriber('/scan', LaserScan, clbk_laser)
 	
 	bug0_client()
     
