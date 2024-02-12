@@ -3,6 +3,8 @@
 import rospy
 from geometry_msgs.msg import Point, Pose, Twist
 from nav_msgs.msg import Odometry
+from std_msgs.msg import *
+from std_srvs.srv import Empty
 import assign_2.msg
 from assign_2.msg import posVel
 import actionlib
@@ -11,6 +13,7 @@ import time
 
 #publisher for position and velocity
 pvel=rospy.Publisher('/posVel', posVel, queue_size=1)
+
 
 #Function called whenever the action server some feedback updates.
 #Each state message is filtered while the achievement of goal is printed
@@ -67,20 +70,48 @@ def bug0_client():
 		goal.target_pose.pose.position.y=des_y
 		#send the goal
 		client.send_goal(goal, feedback_cb=feedback_clbk)
-		enter=input("type anything to continue or 'c' to cancel the goal \n")
-		if enter=='c':
-			client.cancel_goal()
-			print("goal cancelled")
+		#publish goal on goalCoords topic
+		msg=Float32MultiArray()
+		msg.data=[des_x,des_y,0]
+		goalpub.publish(msg)
+		
+		while True:
+			enter=input("type 'c' to cancel the goal, 'r' to reset the stage, 'w' to change size of averaging window for speed, 'o' to continue \n")
+			if enter=='c':
+				client.cancel_goal()
+				print("goal cancelled")
+			elif enter=='w':
+				while True:
+					try:
+						window=int(input("insert new integer window dimension: "))
+						break
+					except Exception as e:
+						print("enter a valid integer value")
+				rospy.set_param('avg_window',window)
+			elif enter=='o':
+				break
+			elif enter=='r':
+				reset_world()
+				client.cancel_goal()
+				break
+				
 
 		client.wait_for_result()
 
 
 
 def main():
+	global goalpub,reset_world
 	rospy.init_node('bug0_client')
+	
+	goalpub=rospy.Publisher('/goalCoords', Float32MultiArray, queue_size=1)
 
 	#subscriver to /odom topic
 	odom = rospy.Subscriber('/odom', Odometry, clbk_funct)
+	
+	#reset_world service
+	rospy.wait_for_service('/gazebo/reset_world')
+	reset_world=rospy.ServiceProxy('/gazebo/reset_world', Empty)
 	
 	bug0_client()
     

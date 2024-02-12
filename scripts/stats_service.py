@@ -22,6 +22,9 @@ target
 #the samples as the oldest ones are overwritten
 def stats_clbk(pos_vel):
 	global counter,vels,position,avg_speed
+	#used to update the dimension of the velocities vectors
+	if counter!=rospy.get_param('avg_window'):
+		vels=[0]*rospy.get_param('avg_window')
 	position[0]=pos_vel.pos_x
 	position[1]=pos_vel.pos_y
 	vels[counter]=pos_vel.vel_x
