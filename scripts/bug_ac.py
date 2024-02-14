@@ -3,21 +3,30 @@
 import rospy
 from geometry_msgs.msg import Point, Pose, Twist
 from nav_msgs.msg import Odometry
+from sensor_msgs.msg import LaserScan
 import assign_2.msg
 from assign_2.msg import posVel
 import actionlib
 import actionlib.msg
 import time
 
+#init of global variable
+left_obstacle=0
+
 #publisher for position and velocity
 pvel=rospy.Publisher('/posVel', posVel, queue_size=1)
 
-#Function called whenever the action server some feedback updates.
+#Function called whenever the action server provides some feedback updates.
 #Each state message is filtered while the achievement of goal is printed
 
 def feedback_clbk(feedback):
 	if feedback.stat=="Target reached!":
 		print(feedback.stat)
+		
+#callback function to retrieve from /scan topic the distance of the robot from the nearest obstacle on the left
+def clbk_laser(scan):
+	global left_obstacle
+	left_obstacle= min(min(scan.ranges[576:719]),10)
 
 
 #Callback function for the topic /odom, the message is repurposed 
@@ -67,10 +76,16 @@ def bug0_client():
 		goal.target_pose.pose.position.y=des_y
 		#send the goal
 		client.send_goal(goal, feedback_cb=feedback_clbk)
-		enter=input("type anything to continue or 'c' to cancel the goal \n")
-		if enter=='c':
-			client.cancel_goal()
-			print("goal cancelled")
+		while True:
+			enter=input("type 'l' to get nearest obstacle on the left, 'c' to cancel the goal, anything else to continue \n")
+			if enter=='c':
+				client.cancel_goal()
+				break
+				print("goal cancelled")
+			elif enter=='l':
+				print("distance from nearest left ostacle is: ",left_obstacle)
+			else:
+				break
 
 		client.wait_for_result()
 
@@ -81,6 +96,9 @@ def main():
 
 	#subscriver to /odom topic
 	odom = rospy.Subscriber('/odom', Odometry, clbk_funct)
+	
+	#subscriber to /scan topic
+	sub_laser = rospy.Subscriber('/scan', LaserScan, clbk_laser)
 	
 	bug0_client()
     
