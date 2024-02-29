@@ -5,8 +5,20 @@ from assign_2.msg import posVel
 from assign_2.srv import *
 from math import dist
 
+"""
+..module:: stats_service
+
+..platform: Unix
+
+..synopsis: Python service for the computation of the distance from the target and the average linear velocity
+
+..moduleauthor:: Enrico Dondero enrico.dondero.@gmail.com
+
+
+"""
+
 #variable counting number of samples from robot velocity
-counter=0;
+counter=0
 #variable containing target coordinates
 trgt=[0.0,0.0]
 #list of recorded velocities
@@ -15,12 +27,17 @@ vels=[0]*rospy.get_param("avg_window")
 position=[0,0]
 #variable for average speed, overwritten once every averaging-window-lenght samples
 avg_speed=0.0
-target
 
 #Function that it's called whenever a message is published on the /posVel topic.
 #The vel array is used as the averaging window for the speed, the counter is used to iteratively cycle through
 #the samples as the oldest ones are overwritten
 def stats_clbk(pos_vel):
+	"""
+	callback function for the /posVel topic, the data obtained is stored in the vels array and the position is updated
+	the average speed is computed and stored in the avg_speed variable
+
+	args: pos_vel(posVel)
+	"""
 	global counter,vels,position,avg_speed
 	position[0]=pos_vel.pos_x
 	position[1]=pos_vel.pos_y
@@ -38,6 +55,10 @@ def stats_clbk(pos_vel):
 #Makes use of the target service for target coordinates retrieval
 #this was done to make use of the target service
 def stats_service(req):
+	"""
+	service that returns target coordinates and average linear velocity
+
+	"""
 	global trgt,avg_speed
 	response=statsResponse()
 	#service to retrieve target
@@ -52,6 +73,9 @@ def stats_service(req):
 	
 
 def main():
+	"""
+	
+	"""
 	global target	
 	#target service proxy init
 	rospy.wait_for_service('target_service')
