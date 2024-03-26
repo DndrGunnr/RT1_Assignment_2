@@ -123,7 +123,6 @@ def main():
 	#subscriver to /odom topic
 	odom = rospy.Subscriber('/odom', Odometry, clbk_funct)
 	
-	bug0_client()
     
 
 if __name__=='__main__':
